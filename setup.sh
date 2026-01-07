@@ -119,19 +119,47 @@ main() {
     # Download rockyou.txt
     log_info "Downloading rockyou.txt (classic wordlist)..."
     echo ""
-    
+
     if [ -f "rockyou.txt" ]; then
         log_warning "rockyou.txt already exists, skipping..."
     else
         download_file "$ROCKYOU_URL" "rockyou.txt" || true
     fi
-    
+
+    echo ""
+
+    # Clone SecLists repository
+    log_info "Cloning SecLists repository (~1.2GB, comprehensive password/fuzzing lists)..."
+    echo ""
+
+    if [ -d "SecLists" ]; then
+        log_warning "SecLists/ directory already exists, skipping..."
+    else
+        if check_command git; then
+            log_info "Cloning SecLists (this may take a few minutes)..."
+            git clone --depth 1 https://github.com/danielmiessler/SecLists.git
+
+            if [ $? -eq 0 ]; then
+                log_success "SecLists cloned successfully!"
+            else
+                log_error "Failed to clone SecLists. You can manually clone it later:"
+                echo "  git clone --depth 1 https://github.com/danielmiessler/SecLists.git"
+            fi
+        else
+            log_error "git not found! Install git to download SecLists:"
+            echo "  macOS: brew install git"
+            echo "  Linux: sudo apt install git"
+            echo ""
+            log_info "Or manually download from: https://github.com/danielmiessler/SecLists"
+        fi
+    fi
+
     echo ""
     echo "================================================================="
     log_success "Setup complete!"
     echo ""
     log_info "Wordlist statistics:"
-    
+
     # Show downloaded files
     for file in "${WORDLISTS[@]}"; do
         if [ -f "$file" ]; then
@@ -140,7 +168,17 @@ main() {
             echo "  ✓ $file - $size ($lines passwords)"
         fi
     done
-    
+
+    # Show SecLists info
+    if [ -d "SecLists" ]; then
+        seclists_size=$(du -sh SecLists 2>/dev/null | cut -f1)
+        echo "  ✓ SecLists/ - $seclists_size (comprehensive password/fuzzing collections)"
+        echo "    - WiFi-WPA wordlists"
+        echo "    - 10M+ leaked passwords"
+        echo "    - Language-specific lists"
+        echo "    - Default credentials"
+    fi
+
     echo ""
     log_info "You can now run hashcat with these wordlists!"
     echo ""

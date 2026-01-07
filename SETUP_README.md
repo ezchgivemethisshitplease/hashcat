@@ -25,6 +25,7 @@ make
 This will download:
 - `part_1.txt` - `part_6.txt` (120M Russian passwords)
 - `rockyou.txt` (14M classic passwords)
+- `SecLists/` (~1.2GB comprehensive password/fuzzing collections)
 
 ### 4. Run Hashcat
 ```bash
@@ -175,6 +176,12 @@ make
 
 - **part_1.txt - part_6.txt:** [rockrus2022](https://github.com/davidalami/rockrus2022/releases/tag/v1.0.0) (120M Russian passwords, sorted by frequency)
 - **rockyou.txt:** Classic leaked password list (14M entries)
+- **SecLists:** [danielmiessler/SecLists](https://github.com/danielmiessler/SecLists) (~1.2GB comprehensive collections)
+  - WiFi-WPA specific wordlists (top 4800)
+  - 10M+ leaked passwords (Gmail, various databases)
+  - Language-specific lists (Dutch, Chinese, German, Polish, etc.)
+  - Default router/device credentials
+  - Fuzzing payloads and usernames
 
 ---
 
