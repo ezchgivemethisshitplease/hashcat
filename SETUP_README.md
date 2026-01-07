@@ -22,14 +22,13 @@ make
 ./setup.sh
 ```
 
-This will download:
+This will download to `lists/` directory:
 - `part_1.txt` - `part_6.txt` (120M Russian passwords)
-- `rockyou.txt` (14M classic passwords)
 - `SecLists/` (~1.2GB comprehensive password/fuzzing collections)
 
 ### 4. Run Hashcat
 ```bash
-./hashcat -m 22000 capture.hc22000 part_1.txt -r rules/best66.rule -w 3
+./hashcat -m 22000 capture.hc22000 lists/part_1.txt -r rules/best66.rule -w 3
 ```
 
 ---
@@ -42,7 +41,7 @@ This will download:
 |-----------|-------------|----------|
 | **Source code** | C/OpenCL/Metal sources | All |
 | **Rules** | `rules/*.rule` | All |
-| **Wordlists** | `part_*.txt`, `rockyou.txt` | All |
+| **Wordlists** | `lists/part_*.txt`, `lists/SecLists/` | All |
 | **Masks** | `masks/*.hcmask` | All |
 | **Charsets** | `charsets/*.hcchr` | All |
 | **Configuration** | Hash files, potfiles (if copied) | All |
@@ -128,8 +127,12 @@ hashcat/
 ├── obj/                  # Build artifacts (EXCLUDED - auto-generated)
 ├── kernels/              # GPU kernel cache (EXCLUDED - auto-generated)
 │
-└── part_*.txt            # Wordlists (EXCLUDED - download with ./setup.sh)
-    rockyou.txt
+└── lists/                # Wordlists directory (EXCLUDED - download with ./setup.sh)
+    ├── part_1.txt
+    ├── part_2.txt
+    ├── ...
+    ├── part_6.txt
+    └── SecLists/
 ```
 
 ---
@@ -150,7 +153,7 @@ make
 ./setup.sh
 
 # 4. Run attack
-./hashcat -m 22000 myhash.hc22000 part_1.txt -r rules/best66.rule -w 3
+./hashcat -m 22000 myhash.hc22000 lists/part_1.txt -r rules/best66.rule -w 3
 ```
 
 **Total time:** ~5 minutes (2 min build + 3 min wordlist download)
@@ -174,8 +177,9 @@ make
 
 ## Wordlist Sources
 
+All wordlists are organized in `lists/` directory:
+
 - **part_1.txt - part_6.txt:** [rockrus2022](https://github.com/davidalami/rockrus2022/releases/tag/v1.0.0) (120M Russian passwords, sorted by frequency)
-- **rockyou.txt:** Classic leaked password list (14M entries)
 - **SecLists:** [danielmiessler/SecLists](https://github.com/danielmiessler/SecLists) (~1.2GB comprehensive collections)
   - WiFi-WPA specific wordlists (top 4800)
   - 10M+ leaked passwords (Gmail, various databases)

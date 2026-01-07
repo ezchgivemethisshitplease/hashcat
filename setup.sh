@@ -18,7 +18,9 @@ NC='\033[0m' # No Color
 
 # URLs for wordlists
 ROCKRUS_BASE_URL="https://github.com/davidalami/rockrus2022/releases/download/v1.0.0"
-ROCKYOU_URL="https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt"
+
+# Wordlist directory
+LISTS_DIR="lists"
 
 # Wordlist files
 WORDLISTS=(
@@ -28,7 +30,6 @@ WORDLISTS=(
     "part_4.txt"
     "part_5.txt"
     "part_6.txt"
-    "rockyou.txt"
 )
 
 # ==========================
@@ -92,58 +93,52 @@ main() {
     log_info "Hashcat Wordlists Setup"
     echo "================================================================="
     echo ""
-    
+
     # Check for download tools
     if ! check_command curl && ! check_command wget; then
         log_error "Neither curl nor wget found!"
         log_error "Please install one: brew install curl (macOS) or apt install curl (Linux)"
         exit 1
     fi
-    
+
+    # Create lists directory
+    log_info "Creating wordlists directory: ${LISTS_DIR}/"
+    mkdir -p "${LISTS_DIR}"
+    echo ""
+
     # Download part_1 through part_6 from rockrus2022
     log_info "Downloading Russian wordlists (part_1 - part_6) from rockrus2022..."
     echo ""
-    
+
     for i in {1..6}; do
         filename="part_${i}.txt"
-        
-        if [ -f "$filename" ]; then
+        filepath="${LISTS_DIR}/${filename}"
+
+        if [ -f "$filepath" ]; then
             log_warning "$filename already exists, skipping..."
         else
             url="${ROCKRUS_BASE_URL}/${filename}"
-            download_file "$url" "$filename" || true
+            download_file "$url" "$filepath" || true
         fi
         echo ""
     done
-    
-    # Download rockyou.txt
-    log_info "Downloading rockyou.txt (classic wordlist)..."
-    echo ""
-
-    if [ -f "rockyou.txt" ]; then
-        log_warning "rockyou.txt already exists, skipping..."
-    else
-        download_file "$ROCKYOU_URL" "rockyou.txt" || true
-    fi
-
-    echo ""
 
     # Clone SecLists repository
     log_info "Cloning SecLists repository (~1.2GB, comprehensive password/fuzzing lists)..."
     echo ""
 
-    if [ -d "SecLists" ]; then
+    if [ -d "${LISTS_DIR}/SecLists" ]; then
         log_warning "SecLists/ directory already exists, skipping..."
     else
         if check_command git; then
             log_info "Cloning SecLists (this may take a few minutes)..."
-            git clone --depth 1 https://github.com/danielmiessler/SecLists.git
+            git clone --depth 1 https://github.com/danielmiessler/SecLists.git "${LISTS_DIR}/SecLists"
 
             if [ $? -eq 0 ]; then
                 log_success "SecLists cloned successfully!"
             else
                 log_error "Failed to clone SecLists. You can manually clone it later:"
-                echo "  git clone --depth 1 https://github.com/danielmiessler/SecLists.git"
+                echo "  git clone --depth 1 https://github.com/danielmiessler/SecLists.git ${LISTS_DIR}/SecLists"
             fi
         else
             log_error "git not found! Install git to download SecLists:"
@@ -162,17 +157,18 @@ main() {
 
     # Show downloaded files
     for file in "${WORDLISTS[@]}"; do
-        if [ -f "$file" ]; then
-            size=$(du -h "$file" | cut -f1)
-            lines=$(wc -l < "$file" | tr -d ' ')
-            echo "  ✓ $file - $size ($lines passwords)"
+        filepath="${LISTS_DIR}/${file}"
+        if [ -f "$filepath" ]; then
+            size=$(du -h "$filepath" | cut -f1)
+            lines=$(wc -l < "$filepath" | tr -d ' ')
+            echo "  ✓ ${LISTS_DIR}/${file} - $size ($lines passwords)"
         fi
     done
 
     # Show SecLists info
-    if [ -d "SecLists" ]; then
-        seclists_size=$(du -sh SecLists 2>/dev/null | cut -f1)
-        echo "  ✓ SecLists/ - $seclists_size (comprehensive password/fuzzing collections)"
+    if [ -d "${LISTS_DIR}/SecLists" ]; then
+        seclists_size=$(du -sh "${LISTS_DIR}/SecLists" 2>/dev/null | cut -f1)
+        echo "  ✓ ${LISTS_DIR}/SecLists/ - $seclists_size (comprehensive password/fuzzing collections)"
         echo "    - WiFi-WPA wordlists"
         echo "    - 10M+ leaked passwords"
         echo "    - Language-specific lists"
@@ -180,7 +176,8 @@ main() {
     fi
 
     echo ""
-    log_info "You can now run hashcat with these wordlists!"
+    log_info "You can now run hashcat with wordlists from ${LISTS_DIR}/ directory!"
+    echo "Example: ./hashcat -m 22000 hash.hc22000 ${LISTS_DIR}/part_1.txt -w 3"
     echo ""
 }
 

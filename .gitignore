@@ -50,20 +50,9 @@ __pycache__/
 /docs/hashcat-help.md
 
 # ============================================
-# Wordlists (Download via setup.sh)
+# Wordlists Directory (Download via setup.sh)
 # ============================================
-part_1.txt
-part_2.txt
-part_3.txt
-part_4.txt
-part_5.txt
-part_6.txt
-rockyou.txt
-russian.txt
-example.dict
-
-# Other wordlist directories
-wordlists/
+lists/
 
 # ============================================
 # Hash Files & PCAP (Project-specific)
@@ -79,6 +68,3 @@ wordlists/
 # Runtime directories
 hashcat.induct/
 hashcat.outfiles/
-
-# External repositories (clone separately)
-SecLists/
