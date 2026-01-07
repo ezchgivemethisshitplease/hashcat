@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 
 # =================================================================
-# Hashcat Wordlists Setup Script
+# Hashcat Complete Setup Script
 # =================================================================
-# Downloads required wordlists for hashcat cracking
+# Automated setup for hashcat:
+#   1. Detects OS and installs build tools (make, gcc, etc.)
+#   2. Compiles hashcat from source
+#   3. Downloads wordlists (Russian passwords + SecLists)
+#
 # Cross-platform: Linux, macOS, *BSD, WSL
 # =================================================================
 
@@ -63,9 +67,9 @@ check_command() {
 download_file() {
     local url="$1"
     local output="$2"
-    
+
     log_info "Downloading $(basename "$output")..."
-    
+
     if check_command curl; then
         curl -L --progress-bar "$url" -o "$output"
     elif check_command wget; then
@@ -74,12 +78,114 @@ download_file() {
         log_error "Neither curl nor wget found. Please install one."
         return 1
     fi
-    
+
     if [ $? -eq 0 ]; then
         log_success "Downloaded: $(basename "$output")"
         return 0
     else
         log_error "Failed to download: $(basename "$output")"
+        return 1
+    fi
+}
+
+detect_os() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "macos"
+    elif [[ -f /etc/os-release ]]; then
+        . /etc/os-release
+        case "$ID" in
+            ubuntu|debian)
+                echo "debian"
+                ;;
+            centos|rhel|fedora|rocky|almalinux)
+                echo "rhel"
+                ;;
+            arch|manjaro)
+                echo "arch"
+                ;;
+            *)
+                echo "linux"
+                ;;
+        esac
+    else
+        echo "unknown"
+    fi
+}
+
+install_build_tools() {
+    local os_type=$(detect_os)
+
+    log_info "Checking build tools..."
+
+    # Check if make exists
+    if check_command make; then
+        log_success "make is already installed"
+        return 0
+    fi
+
+    log_warning "make not found, installing build tools..."
+
+    case "$os_type" in
+        debian)
+            log_info "Detected Debian/Ubuntu, installing build-essential..."
+            sudo apt update && sudo apt install -y build-essential
+            ;;
+        rhel)
+            log_info "Detected RHEL/CentOS/Fedora, installing Development Tools..."
+            sudo yum groupinstall -y "Development Tools" || sudo dnf groupinstall -y "Development Tools"
+            ;;
+        arch)
+            log_info "Detected Arch Linux, installing base-devel..."
+            sudo pacman -S --noconfirm base-devel
+            ;;
+        macos)
+            log_info "Detected macOS, installing Xcode Command Line Tools..."
+            xcode-select --install 2>/dev/null || log_warning "Xcode tools may already be installed"
+            ;;
+        *)
+            log_error "Unknown OS. Please install make manually:"
+            log_error "  Debian/Ubuntu: sudo apt install build-essential"
+            log_error "  RHEL/CentOS:   sudo yum groupinstall 'Development Tools'"
+            log_error "  macOS:         xcode-select --install"
+            return 1
+            ;;
+    esac
+
+    if check_command make; then
+        log_success "Build tools installed successfully!"
+        return 0
+    else
+        log_error "Failed to install build tools"
+        return 1
+    fi
+}
+
+build_hashcat() {
+    log_info "Building hashcat from source..."
+    echo ""
+
+    # Check if binary already exists
+    if [ -f "hashcat" ] || [ -f "hashcat.bin" ] || [ -f "hashcat.exe" ]; then
+        log_success "hashcat binary already exists, skipping build"
+        return 0
+    fi
+
+    # Build hashcat
+    log_info "Running make (this may take a few minutes)..."
+    make
+
+    if [ $? -eq 0 ]; then
+        log_success "hashcat built successfully!"
+
+        # Show version
+        if [ -f "hashcat" ]; then
+            ./hashcat --version 2>/dev/null | head -1 || log_info "hashcat binary created"
+        fi
+
+        return 0
+    else
+        log_error "Failed to build hashcat"
+        log_error "Check error messages above for details"
         return 1
     fi
 }
@@ -90,7 +196,12 @@ download_file() {
 
 main() {
     echo ""
-    log_info "Hashcat Wordlists Setup"
+    log_info "Hashcat Complete Setup Script"
+    echo "================================================================="
+    log_info "This script will:"
+    echo "  1. Install build tools (if needed)"
+    echo "  2. Build hashcat binary"
+    echo "  3. Download wordlists (part_1-6 + SecLists)"
     echo "================================================================="
     echo ""
 
@@ -100,6 +211,20 @@ main() {
         log_error "Please install one: brew install curl (macOS) or apt install curl (Linux)"
         exit 1
     fi
+
+    # Install build tools
+    install_build_tools || {
+        log_error "Failed to install build tools. Exiting."
+        exit 1
+    }
+    echo ""
+
+    # Build hashcat
+    build_hashcat || {
+        log_error "Failed to build hashcat. Exiting."
+        exit 1
+    }
+    echo ""
 
     # Create lists directory
     log_info "Creating wordlists directory: ${LISTS_DIR}/"

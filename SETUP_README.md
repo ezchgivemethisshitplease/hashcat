@@ -10,23 +10,22 @@ git clone <your-repo-url> hashcat
 cd hashcat
 ```
 
-### 2. Build Hashcat (Platform-specific)
-```bash
-make
-```
-
-**Supported platforms:** Linux, macOS, Windows (MSYS2/WSL), FreeBSD
-
-### 3. Download Wordlists
+### 2. Run Setup Script (One Command - Does Everything!)
 ```bash
 ./setup.sh
 ```
 
-This will download to `lists/` directory:
-- `part_1.txt` - `part_6.txt` (120M Russian passwords)
-- `SecLists/` (~1.2GB comprehensive password/fuzzing collections)
+**This will automatically:**
+- Detect your OS (Linux/macOS/BSD)
+- Install build tools (make, gcc, etc.) if needed
+- Compile hashcat from source
+- Download wordlists to `lists/` directory:
+  - `part_1.txt` - `part_6.txt` (120M Russian passwords)
+  - `SecLists/` (~1.2GB comprehensive password/fuzzing collections)
 
-### 4. Run Hashcat
+**Supported platforms:** Linux (Ubuntu/Debian/RHEL/Arch), macOS, WSL
+
+### 3. Run Hashcat
 ```bash
 ./hashcat -m 22000 capture.hc22000 lists/part_1.txt -r rules/best66.rule -w 3
 ```
@@ -146,17 +145,14 @@ hashcat/
 git clone https://github.com/youruser/hashcat-portable.git
 cd hashcat-portable
 
-# 2. Build hashcat for Linux
-make
-
-# 3. Download wordlists
+# 2. Run setup (builds hashcat + downloads wordlists)
 ./setup.sh
 
-# 4. Run attack
+# 3. Run attack
 ./hashcat -m 22000 myhash.hc22000 lists/part_1.txt -r rules/best66.rule -w 3
 ```
 
-**Total time:** ~5 minutes (2 min build + 3 min wordlist download)
+**Total time:** ~5 minutes (auto-install build tools + compile + download wordlists)
 
 ---
 
