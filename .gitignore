@@ -48,3 +48,37 @@ __pycache__/
 # Generated docs are overwritten anyway
 /docs/hashcat-example_hashes.md
 /docs/hashcat-help.md
+
+# ============================================
+# Wordlists (Download via setup.sh)
+# ============================================
+part_1.txt
+part_2.txt
+part_3.txt
+part_4.txt
+part_5.txt
+part_6.txt
+rockyou.txt
+russian.txt
+example.dict
+
+# Other wordlist directories
+wordlists/
+
+# ============================================
+# Hash Files & PCAP (Project-specific)
+# ============================================
+*.hc22000
+*.hccapx
+*.16800
+*.hash
+*.pcap
+*.pcapng
+*.cap
+
+# Runtime directories
+hashcat.induct/
+hashcat.outfiles/
+
+# External repositories (clone separately)
+SecLists/
